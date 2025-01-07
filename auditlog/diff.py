@@ -2,7 +2,7 @@ from datetime import timezone
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import NOT_PROVIDED, DateTimeField, JSONField, Model
+from django.db.models import NOT_PROVIDED, DateTimeField, DecimalField, JSONField, Model
 from django.utils import timezone as django_timezone
 from django.utils.encoding import smart_str
 
@@ -71,6 +71,13 @@ def get_field_value(obj, field):
                 and not django_timezone.is_naive(value)
             ):
                 value = django_timezone.make_naive(value, timezone=timezone.utc)
+        elif isinstance(field, DecimalField):
+            # Fix for Issue #260
+            # DecimalFields can be stored with multiple zeroes after decimal but
+            # might only have one zero after save() method, so we need to remove
+            # all extra zeroes for an accurate comparison.
+            value_before_clean = smart_text(getattr(obj, field.name, None))
+            value = value_before_clean.rstrip('0').rstrip('.') if '.' in value_before_clean else value_before_clean
         elif isinstance(field, JSONField):
             value = field.to_python(getattr(obj, field.name, None))
         else:
