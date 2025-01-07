@@ -76,7 +76,7 @@ def get_field_value(obj, field):
             # DecimalFields can be stored with multiple zeroes after decimal but
             # might only have one zero after save() method, so we need to remove
             # all extra zeroes for an accurate comparison.
-            value_before_clean = smart_text(getattr(obj, field.name, None))
+            value_before_clean = smart_str(getattr(obj, field.name, None))
             value = value_before_clean.rstrip('0').rstrip('.') if '.' in value_before_clean else value_before_clean
         elif isinstance(field, JSONField):
             value = field.to_python(getattr(obj, field.name, None))
